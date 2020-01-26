@@ -1,0 +1,26 @@
+<template>
+	<header class="header">
+		<v-row>
+			<v-col  style="margin-left: 12px;">
+				  
+				  <v-icon  color="white" @click="backLast">mdi-arrow-left</v-icon>
+				
+			</v-col>
+			<v-col  class="text-center" style="color: white;position:absolute;z-index: -1;right: 0;" >{{title+'('+$store.state.searchByTime.year+'年'+$store.state.searchByTime.month+'月)'}}</v-col>
+		</v-row>
+	</header>
+</template>
+
+<script>
+	export default{
+		props:['title'],
+		methods:{
+			backLast:function(){
+				this.$router.go(-1)
+			}
+		}
+	}
+</script>
+
+<style>
+</style>

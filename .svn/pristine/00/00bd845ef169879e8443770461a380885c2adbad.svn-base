@@ -1,0 +1,194 @@
+<template>
+    <div style="width: 100%">
+        <div v-if="chartData != null && chartData.length>0" id="indicatorBar" style="width: 100%;height:300px;"></div>
+        <div v-else class="text-center mt-5 mb-5">暂无统计数据，敬请期待</div>
+    </div>
+</template>
+<script>
+export default {
+    props: ['chartData'],
+    data() {
+        return {
+            markPointOption: {
+                name: '环比升降',
+                value: '',
+                xAxis: 10,
+                yAxis: '',
+                symbolOffset: [-5, 0],
+                itemStyle: { //控制标记的样式
+
+                },
+                symbol: '',
+                label: { //标注的文本
+                    color: '#666666',
+                    fontSize: 9,
+                    offset: [15, 2]
+                }
+            },
+        }
+    },
+    mounted() {
+		if(this.chartData != null && this.chartData.length>0){
+			this.chart()
+		}  
+    },
+    watch: {
+        chartData(val) {
+            this.chart()
+        }
+    },
+    methods: {
+        chart: function() {
+            // var echarts = require('echarts');
+            // 基于准备好的dom，初始化echarts实例
+            var myChart = echarts.init(document.getElementById('indicatorBar'));
+
+            // 取接口数据进行配置
+            var yAxisData = [];
+            var xMonthAverageData = [];
+            var xYearAverageData = [];
+            var markPointData = [];
+            var bindClickData = [];
+            var that = this;
+            this.chartData.forEach(function(e) {
+                yAxisData.push(e.indicator);
+                xMonthAverageData.push(e.monthAverage);
+                xYearAverageData.push(e.yearAverage);
+                if (e.monthRise >= 0) {
+                    that.markPointOption.symbol = 'image://http://mtrapp.projects.bingosoft.net:81/investigationstatistic/static/img/timeRise.png'
+                } else {
+                    that.markPointOption.symbol = 'image://http://mtrapp.projects.bingosoft.net:81/investigationstatistic/static/img/timeDown.png'
+                }
+                // that.markPointOption.xAxis = e.yearAverage;
+                that.markPointOption.yAxis = e.indicator;
+                that.markPointOption.value = that.cutMinus(e.monthRise);
+                markPointData.push(Object.assign({}, that.markPointOption));
+                //配置局部点击事件的数据
+                bindClickData.push({
+                    indicator: e.indicator,
+                    indicator_id: e.indicator_id
+                })
+            });
+
+            // console.log('指标')
+            // console.log(bindClickData)
+
+
+            // 指定图表的配置项和数据
+            var option = {
+                title: {
+                    text: '各指标得分',
+                    left: '10%',
+                    top: 3,
+                    textStyle: {
+                        fontSize: 11
+                    }
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: ['月度得分', '年平均得分'],
+                    left: '35%',
+                    textStyle: {
+                        fontSize: 10,
+                        color: '#666666'
+                    }
+
+                },
+                grid: [{ //调整图形位置
+                    bottom: '15%',
+                    left: '28%',
+                    top: '15%',
+
+                }],
+                xAxis: [{
+                    type: 'value',
+                    splitLine: {
+                        show: false //去掉网格线
+                    },
+                    min: 0,
+                    max: 10
+                }],
+                yAxis: [{
+                    type: 'category',
+                    data: yAxisData
+                }],
+                series: [{
+                        name: '年平均得分',
+                        type: 'bar',
+                        barGap: '-100%', //添加此配置项即为重叠效果
+                        data: xYearAverageData,
+                        itemStyle: {
+                            color: '#da7665',
+                            barBorderRadius: [0, 10, 10, 0]
+                        },
+                        label: {
+                            show: true,
+                            position: 'insideRight',
+                            fontSize: 10
+                        },
+                        markPoint: {
+                            // symbol:'image://http://localhost:8080/static/img/timeRise.png',
+                            symbolSize: 10,
+
+                            // label:{show:false,formatter: '{b}: {@score}'},
+                            data: markPointData
+                        },
+                        barWidth: 12, //柱图宽度
+
+
+                    },
+                    {
+                        name: '月度得分',
+                        type: 'bar',
+                        data: xMonthAverageData,
+                        itemStyle: {
+                            color: '#b6292c',
+                            barBorderRadius: [0, 10, 10, 0]
+                        },
+                        label: {
+                            show: true,
+                            position: 'insideRight',
+                            fontSize: 10
+                        },
+                        markPoint: {
+                            // symbol:'image://http://localhost:8080/static/img/timeRise.png',
+                            symbolSize: 10,
+
+                            // label:{show:false,formatter: '{b}: {@score}'},
+                            data: markPointData
+                        },
+                        barWidth: 12, //柱图宽度
+
+                    }
+
+                ]
+            };
+
+
+            // 使用刚指定的配置项和数据显示图表。
+            myChart.setOption(option);
+
+            // myChart.on('click', 'yAxis.category', function (e) {
+            // 	console.log('图表')
+            // 	console.log(e)
+            // });
+            myChart.getZr().on('click', 'yAxis.category', params => {
+                if (typeof params.topTarget !== 'undefined' && params.offsetX < 90 && typeof params.topTarget.anid !== 'undefined' && params.topTarget.anid) {
+                    var anid = params.topTarget.anid;
+                    var anidArray = anid.split('_');
+                    var i = anidArray[1];
+                    // 将参数存入store中
+                    this.$store.state.targetParams.targetId = bindClickData[i].indicator_id;
+                    this.$store.state.targetParams.targetName = bindClickData[i].indicator;
+                    this.$router.push({
+                        name: "indexPage"
+                    });
+                    // console.log(params)
+                }
+            });
+        }
+    }
+}
+</script>

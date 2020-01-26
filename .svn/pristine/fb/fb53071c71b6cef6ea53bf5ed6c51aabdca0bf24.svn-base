@@ -1,0 +1,45 @@
+<template>
+	<div v-if="typeof spanStatistic != 'undefined'">
+		<v-simple-table v-if="spanStatistic != null" :dense="dense" :fixed-header="fixedHeader" >
+			<thead>
+				<tr>
+					<th></th>
+					<th class="text-center "><span style="font-size: 15px;">月度</span></th>
+					<th class="text-center "><span style="font-size: 15px;">季度</span></th>
+					<th class="text-center "><span style="font-size: 15px;">年度</span></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td class="text-center ">当前</td>
+					<td class="text-center ">{{ spanStatistic.monthData }}</td>
+					<td class="text-center ">{{ spanStatistic.quarterData }}</td>
+					<td class="text-center ">{{ spanStatistic.yearData }}</td>
+				</tr>
+				<tr>
+					<td class="text-center ">环比升降</td>
+					<td class="text-center "><span :style="{color: [spanStatistic.monthRise > 0 ? 'red' : 'green']}">{{formate(spanStatistic.monthRise)}}</span></td>
+					<td class="text-center "><span :style="{color: [spanStatistic.quarterRise > 0 ? 'red' : 'green']}">{{formate(spanStatistic.quarterRise)}}</span></td>
+					<td class="text-center "><span :style="{color: [spanStatistic.yearRise > 0 ? 'red' : 'green']}">{{formate(spanStatistic.yearRise)}}</span></td>
+				</tr>
+			</tbody>
+		</v-simple-table>
+		<div v-else class="text-center mt-5 mb-5" >暂无统计数据，敬请期待</div>
+	</div>
+</template>
+
+<script>
+	export default{
+		props:['spanStatistic'],
+		data(){
+			return{
+				dense: false,
+				fixedHeader: false,
+			}
+		},
+		
+		
+	}
+</script>
+
+

@@ -1,0 +1,92 @@
+<template>
+	<div style="width: 100%">
+		<div v-if="chartData != null && chartData.length>0" id="lineTrend" style="width: 100%;height:100px;"></div>
+		<div v-else class="text-center mt-5 mb-5">暂无统计数据，敬请期待</div>
+	</div>
+
+</template>
+
+<script>
+	export default {
+		props: ['chartData'],
+		mounted() {
+			if(this.chartData != null && this.chartData.length>0){
+				this.chart()
+			}  
+		},
+		watch: {
+			chartData(val) {
+				this.chart()
+			}
+		},
+		methods: {
+			chart: function() {
+
+				// var echarts = require('echarts');
+				// 基于准备好的dom，初始化echarts实例
+				var myChart = echarts.init(document.getElementById('lineTrend'));
+
+				// 指定图表的配置项和数据
+				var option = {
+					title: {
+						text: this.timeFormate(this.chartData[0].date),
+						textStyle: {
+							fontWeight: 'normal',
+							fontSize: 10
+						}
+					},
+					tooltip: {
+						formatter: '{b}日得分: {c}',
+						position: 'top'
+					},
+					xAxis: {
+						type: 'category',
+						data: [this.getFormateDay(this.chartData[6].date),
+							this.getFormateDay(this.chartData[5].date),
+							this.getFormateDay(this.chartData[4].date),
+							this.getFormateDay(this.chartData[3].date),
+							this.getFormateDay(this.chartData[2].date),
+							this.getFormateDay(this.chartData[1].date),
+							this.getFormateDay(this.chartData[0].date)
+						],
+						axisLabel: {
+							fontSize: 8
+						}
+					},
+					yAxis: {
+						type: 'value',
+						axisLabel: {
+							fontSize: 8
+						}
+					},
+					grid: [{ //调整图形位置
+						bottom: '16%',
+						left: '15%',
+						top: '20%'
+					}],
+					series: [{
+						data: [
+							this.chartData[6].score,
+							this.chartData[5].score,
+							this.chartData[4].score,
+							this.chartData[3].score,
+							this.chartData[2].score,
+							this.chartData[1].score,
+							this.chartData[0].score
+						],
+						type: 'line',
+						smooth: true,
+						itemStyle: {
+							color: '#b6292c'
+						},
+						// symbol: 'circle',//修改为实心点
+						symbolSize: 6,//设置节点大小
+					}]
+				};
+
+				// 使用刚指定的配置项和数据显示图表。
+				myChart.setOption(option);
+			}
+		}
+	}
+</script>

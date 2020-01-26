@@ -1,0 +1,214 @@
+<template>
+	<div class="overflow-x-hidden">
+		<Header :title="railway"></Header>
+		<div v-if="railwayData != null" class="text-center" style="margin-top: 55px; margin-bottom: 100px;">
+			<v-row class="content">
+				<!-- <SimpleTable :spanStatistic="railwayData.spanStatistic"></SimpleTable> -->
+				<monthAndYear v-if="typeof railwayData.spanStatistic !== 'undefined'" :spanStatistic="railwayData.spanStatistic"></monthAndYear>
+			</v-row>
+			<v-divider style="margin-top: 5px"></v-divider>
+			<v-divider></v-divider>
+			<v-divider></v-divider>
+			<v-divider></v-divider>
+			<v-divider></v-divider>
+			<v-divider></v-divider>
+			<v-divider></v-divider>
+			<v-divider></v-divider>
+		<!-- 	<v-row class="content">
+				<Charts v-if="typeof railwayData.monthCurveList != 'undefined'" 
+				:chartData="railwayData.monthCurveList"></Charts>
+
+			</v-row>
+			<v-divider class="divider"></v-divider> -->
+			<v-row class="content">
+				<!-- <IndexTable style="pointer-events: none;" :indexAvgList="railwayData.indicatorAverageList"></IndexTable> -->
+				<indicatorBar v-if="typeof railwayData.indicatorAverageList !== 'undefined'" :chartData="railwayData.indicatorAverageList"></indicatorBar>
+			</v-row>
+			<v-divider></v-divider>
+			<v-divider></v-divider>
+			<v-divider></v-divider>
+			<v-divider></v-divider>
+			<v-divider></v-divider>
+			<v-divider></v-divider>
+			<v-divider></v-divider>
+			<v-divider></v-divider>
+			
+			<v-row class="content">
+				<v-col cols="5" style="padding: 0;">
+					<degreeBar v-if="typeof railwayData.forthRankList !== 'undefined'" type="topStation"
+					title="满意度排名前三的站点" :chartData="railwayData.forthRankList"></degreeBar>
+				</v-col>
+				<v-divider vertical></v-divider>
+				<v-col cols="5" style="padding: 0;">
+					<degreeBar v-if="typeof railwayData.backRankList !== 'undefined'" type="endStation"
+					title="满意度排名后三的站点" :chartData="railwayData.backRankList"></degreeBar>
+				</v-col>
+			</v-row>
+		</div>
+		<div v-else class="text-center" style="margin-top: 100px;">暂无统计数据，敬请期待</div>
+		<footer class="text-center footer" style="background-color: white">
+			<v-row>
+				<v-col cols="6" style="padding: 0;">
+					<newButton title="按站点查看" :routerConfig="stationConfig" ></newButton>
+				</v-col>
+				<v-col cols="6" style="padding: 0;">
+					<v-btn tile large class="space" style="color: #d21f1d;"  @click="backHome">回首页</v-btn>
+				</v-col>
+			</v-row>
+			<!-- <menuButton title="按站点查看" :routerConfig="stationConfig"></menuButton> -->
+		</footer>
+	</div>
+</template>
+
+<script>
+	import monthAndYear from "../components/monthAndYear.vue";
+	import indicatorBar from "../components/indicatorBar.vue";
+	import degreeBar from "../components/degreeBar.vue";
+	import newButton from "../components/newButton.vue";
+	
+	import menuButton from "../components/menuButton.vue";
+	import Table from "../components/Table.vue";
+	import Charts from "../components/charts.vue";
+	import SimpleTable from "../components/simpleTable.vue";
+	import IndexTable from "../components/indexTable.vue";
+	import Axios from "../API/api.js";
+	import Header from "../components/common/Header.vue";
+	export default {
+		data() {
+			return {
+				stationConfig: {
+					name: "stationPage",
+					params: {}
+				},
+				railwayData: {},
+				railway: "",
+				lineId: "",
+				lineIndex: 0
+			};
+		},
+		components: {
+			menuButton,
+			Table,
+			Charts,
+			SimpleTable,
+			IndexTable,
+			Header,
+			monthAndYear,
+			indicatorBar,
+			degreeBar,
+			newButton
+		},
+		beforeRouteEnter(to, from, next) {
+			if (from.name == "stationPage") {
+				to.meta.isBack = true;
+			}
+			next();
+		},
+		activated() {
+			if (!this.$route.meta.isBack && !this.$route.meta.firstEnter) {
+				// 如果isBack是false，表明需要获取新数据，否则就不再请求，直接使用缓存的数据
+				this.railway = this.$store.state.railwayParams.lineName;
+				this.lineId = this.$store.state.railwayParams.lineId;
+				this.lineIndex = this.$store.state.railwayParams.lineIndex;
+				this.getData();
+				this.getStationData("/base/linestations", this.lineIndex);
+				// console.log('activated');
+
+			}
+			this.$route.meta.isBack = false;
+			this.$route.meta.firstEnter = false;
+		},
+		created() {
+			// 只有第一次进入或者刷新页面后才会执行此钩子函数
+			// console.log('created');
+			//从store中取数据,然后发送请求
+			this.railway = this.$store.state.railwayParams.lineName;
+			this.lineId = this.$store.state.railwayParams.lineId;
+			this.lineIndex = this.$store.state.railwayParams.lineIndex;
+			// console.log('索引：');
+			// console.log(this.lineIndex);
+			// console.log(this.railway);
+			// console.log(this.lineId);
+
+
+
+			this.getData();
+		},
+		mounted() {
+			//获取station数据
+			this.getStationData("/base/plinestations", this.lineIndex);
+		},
+		methods: {
+			getData: function() {
+				var url = "/member/investigation/getStatistic";
+				var that = this;
+				var data = {
+					dimension: 2,
+					year: this.$store.state.searchByTime.year,
+					month: this.$store.state.searchByTime.month,
+					lineId: this.lineId,
+					stationId: ""
+				};
+				// console.log("请求参数：");
+				// console.log(data);
+				var reqParams = {
+					data: JSON.stringify(data),
+					access_token: this.token
+				};
+				Axios.post(url, reqParams)
+					.then(function(response) {
+						that.railwayData = JSON.parse(response.data.data);
+						// console.log("线路数据：");
+						// console.log(that.railwayData);
+					})
+					.catch(function(error) {});
+			},
+			getStationData: function(reqURL, lineIndex) {
+				//发送请求，获取items
+				var jsonStr = {
+					appid: "2018112000000201",
+					sign: "Z4INEocFqjnkr3YBlduY8Zio0OV8nrPD0IQa5zjn9Row6BmStcujglt02KkLihwcFHR9Ybna5lXJyhHwWInEGmM80PQlEf+rCjJPKQ9iKEvlrYBUct6hZKS29iBsUeGav4gSprMC7tgEdF7k6POhXLHB/h6Xki4U3nao9oQ8ZlM=",
+					signtype: "RSA",
+					partnerid: "000002",
+					version: "1.0",
+					timestamp: "2019-09-25 14:15:29"
+				};
+				var that = this;
+				var reqParams = JSON.stringify(jsonStr);
+				// console.log("请求参数：");
+				// console.log(reqParams);
+				Axios.post(reqURL, reqParams)
+					.then(function(response) {
+						var lineData = JSON.parse(response.data.data).data;
+						// console.log('线路');
+						// console.log(lineData);
+						// 根据lineIndex是否有值判断是点击表格钻取跳转的，或者是通过menuButton跳转的
+						if (that.lineIndex == undefined) {
+							// 遍历lineData,找出该线路下的站点数据            
+							lineData.forEach(function(e) {
+								if (e.lineid == that.lineId) {
+									var stationData = e.child;
+									sessionStorage.setItem("stationData", JSON.stringify(stationData));
+								}
+							});
+
+						} else {
+							var stationData = lineData[lineIndex].child;
+							// console.log("存入sessionStorage的站点");
+							// console.log(stationData);
+							sessionStorage.setItem("stationData", JSON.stringify(stationData));
+						}
+
+					})
+					.catch(function(error) {
+						// console.log(error);
+					});
+			},
+			backHome: function() {
+				this.$router.push({
+					name: 'home'
+				});
+			}
+		}
+	};
+</script>

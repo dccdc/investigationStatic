@@ -1,0 +1,139 @@
+{
+	"spanStatistic": {
+	    "monthData": "9.06",
+	    "quarterData": "9.06" ,
+	    "yearData": "9.06",
+	    "monthRise": "0.02" ,
+	    "quarterRise": "0.02",
+	    "yearRise": "0.02"
+	}, 
+	"monthCurveList": [
+	    {
+	        "date": "5月",
+	        "monthAverage": 5
+	    },
+		 {
+		     "date": "6月",
+		     "monthAverage": 15
+		 } ,
+		 {
+		     "date": "7月",
+		     "monthAverage": 36
+		 } ,
+		 {
+		     "date": "8月",
+		     "monthAverage": 8
+		 } 
+	    
+	], 
+	"indicatorAverageList": [
+	    {
+	        "indicator": "人员服务周到" ,
+	        "monthAverage": "9.34" ,
+	        "monthRise": "0.04",
+	        "yearAverage": "8.64"
+	    }, 
+		{
+		    "indicator": "人员服务周到" ,
+		    "monthAverage": "9.34" ,
+		    "monthRise": "0.04",
+		    "yearAverage": "8.64"
+		}, 
+		{
+		    "indicator": "人员服务周到" ,
+		    "monthAverage": "9.34" ,
+		    "monthRise": "0.04",
+		    "yearAverage": "8.64"
+		}, 
+		{
+		    "indicator": "人员服务周到" ,
+		    "monthAverage": "9.34" ,
+		    "monthRise": "0.04",
+		    "yearAverage": "8.64"
+		}, 
+		{
+		    "indicator": "人员服务周到" ,
+		    "monthAverage": "9.34" ,
+		    "monthRise": "0.04",
+		    "yearAverage": "8.64"
+		}, 
+		{
+		    "indicator": "人员服务周到" ,
+		    "monthAverage": "9.34" ,
+		    "monthRise": "0.04",
+		    "yearAverage": "8.64"
+		}, 
+		{
+		    "indicator": "人员服务周到" ,
+		    "monthAverage": "9.34" ,
+		    "monthRise": "0.04",
+		    "yearAverage": "8.64"
+		}, 
+		{
+		    "indicator": "人员服务周到" ,
+		    "monthAverage": "9.34" ,
+		    "monthRise": "0.04",
+		    "yearAverage": "8.64"
+		}, 
+		{
+		    "indicator": "人员服务周到" ,
+		    "monthAverage": "9.34" ,
+		    "monthRise": "0.04",
+		    "yearAverage": "8.64"
+		}, 
+		{
+		    "indicator": "人员服务周到" ,
+		    "monthAverage": "9.34" ,
+		    "monthRise": "0.04",
+		    "yearAverage": "8.64"
+		}, 
+		{
+		    "indicator": "人员服务周到" ,
+		    "monthAverage": "9.34" ,
+		    "monthRise": "0.04",
+		    "yearAverage": "8.64"
+		}
+	], 
+	"forthRankList": [
+	    {
+	        "rank_value":"1号线",
+	        "monthAverage": "9.06",
+	        "rankGradew":"1" ,
+	        "monthRise": "0.04"
+	    },
+		{
+		    "rank_value":"2号线",
+		    "monthAverage": "9.06",
+		    "rankGradew":"1" ,
+		    "monthRise": "0.04"
+		},
+		{
+		    "rank_value":"3号线",
+		    "monthAverage": "9.06",
+		    "rankGradew":"1" ,
+		    "monthRise": "0.04"
+		}
+	   
+	], 
+	"backRankList": [
+	   {
+	       "rank_value":"3号线",
+	       "monthAverage": "9.06",
+	       "rankGradew":"1" ,
+	       "monthRise": "0.04"
+	   },
+	   {
+	       "rank_value":"2号线",
+	       "monthAverage": "9.06",
+	       "rankGradew":"1" ,
+	       "monthRise": "0.04"
+	   },
+	   {
+	       "rank_value":"1号线",
+	       "monthAverage": "9.06",
+	       "rankGradew":"1" ,
+	       "monthRise": "0.04"
+	   }
+	   
+	]
+}

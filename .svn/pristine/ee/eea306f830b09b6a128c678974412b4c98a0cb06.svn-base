@@ -1,0 +1,101 @@
+<template>
+	<div  class="overflow-x-hidden">
+		<Header :title="station" ></Header>
+		<div v-if="stationData != null" class="text-center" style="margin-top: 55px; margin-bottom: 50px;">
+			
+				<v-row class="content">
+					<SimpleTable :spanStatistic="stationData.spanStatistic"></SimpleTable>
+				</v-row>
+				<v-divider class="divider"></v-divider>
+				<v-row class="content">
+					<Charts v-if="typeof stationData.monthCurveList != 'undefined'" :chartData="stationData.monthCurveList"></Charts>
+				</v-row>
+				<v-divider class="divider"></v-divider>
+				<v-row class="content">
+					<IndexTable :indexAvgList="stationData.indicatorAverageList"></IndexTable>
+				</v-row>
+				<v-divider class="divider"></v-divider>
+			
+		</div>
+		<div v-else class="text-center" style="margin-top: 100px;">暂无统计数据，敬请期待</div>
+		<footer class="text-center footer" >
+			<v-btn large style="width:100%" color="accent" @click="backHome">回首页</v-btn>
+		</footer>
+	</div>
+</template>
+
+<script>
+	import Table from '../components/Table.vue'
+	import Charts from '../components/charts.vue'
+	import SimpleTable from '../components/simpleTable.vue'
+	import IndexTable from '../components/indexTable.vue'
+	import Axios from '../API/api.js'
+	import Header from '../components/common/Header.vue'
+	export default{
+		data(){
+			return{
+				station:'',
+				stationId:'',
+				lineId:'',
+				stationData:{}
+			}
+		},
+		components:{
+			Table,
+			Charts,
+			SimpleTable,
+			IndexTable,
+			Header
+		},
+		beforeRouteLeave(to, from, next){
+			//设置下一个路由的meta
+			
+			to.meta.keepAlive = true;
+			
+			next();
+		},
+		created() {
+			//从store中取数据,然后发送请求
+			this.station = this.$store.state.stationParams.stationName;
+			this.stationId = this.$store.state.stationParams.stationId;
+			this.lineId = this.$store.state.stationParams.lineId; 
+			
+				var url = '/member/investigation/getStatistic';
+				var that = this;
+				var data = {
+					dimension: 3,
+					year: this.$store.state.searchByTime.year,
+					month: this.$store.state.searchByTime.month,
+					lineId:this.lineId,
+					stationId: this.stationId
+				};
+				// console.log("请求参数：");
+				// console.log(data);
+				var reqParams = {
+					data: JSON.stringify(data),
+					access_token: this.token
+				}
+				Axios.post(url,reqParams)
+				.then(function(response){
+					that.stationData = JSON.parse(response.data.data);
+					// console.log("站点数据：");
+					// console.log(that.stationData);
+				})
+				.catch(function(error){
+					
+				})
+			
+				
+			
+			
+		},
+		methods:{
+			backHome:function(){
+				this.$router.go(-2);
+			}
+		}
+	}
+</script>
+
+<style>
+</style>

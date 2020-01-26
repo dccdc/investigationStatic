@@ -1,0 +1,292 @@
+<template>
+  <div class="overflow-x-hidden">
+    <header class="header">
+      <v-row>
+        <v-col class="text-center" style="color: white;">首页</v-col>
+      </v-row>
+    </header>
+    <div style="width: 100%;position: fixed;left: 0;top: 30px;z-index:100;background-color: white;">
+      <!-- <v-card > -->
+      <v-row class="content" style="margin-top: 0;">
+        <v-col cols="4">
+          <v-select
+            v-model="year"
+            :items="years"
+            menu-props="start"
+            hide-details
+            single-line
+            item-color="green"
+            color="green"
+          ></v-select>
+        </v-col>
+        <v-col cols="4">
+          <v-select
+            v-model="month"
+            :items="months"
+            menu-props="start"
+            hide-details
+            single-line
+            item-color="green"
+            color="green"
+          ></v-select>
+        </v-col>
+      </v-row>
+      <!-- </v-card> -->
+    </div>
+    <v-divider style="margin-top: 110px;"></v-divider>
+    <div v-if="data != null" style="width: 99%;margin-bottom: 44px;" class="text-center">
+      <v-row class="content">
+        <SimpleTable :spanStatistic="data.spanStatistic"></SimpleTable>
+      </v-row>
+      <v-divider class="divider"></v-divider>
+      <v-row class="content">
+        <Charts v-if="typeof data.monthCurveList != 'undefined'" :chartData="data.monthCurveList"></Charts>
+      </v-row>
+      <v-divider class="divider"></v-divider>
+      <v-row class="content">
+        <IndexTable :indexAvgList="data.indicatorAverageList"></IndexTable>
+      </v-row>
+      <v-divider class="divider"></v-divider>
+      <v-row class="content">
+        <Table title="满意度排名前三" message="线路" :rankData="data.forthRankList"></Table>
+      </v-row>
+      <v-divider class="divider"></v-divider>
+      <v-row class="content">
+        <Table title="满意度排名后三" message="线路" :rankData="data.backRankList"></Table>
+      </v-row>
+      <v-divider class="divider"></v-divider>
+      <v-row class="content">
+        <Table title="区域满意度排名" message="区域" :rankData="data.backRankList"></Table>
+      </v-row>
+      <v-divider class="divider"></v-divider>
+    </div>
+    <div v-else class="text-center mt-12">暂无统计数据，敬请期待</div>
+    <footer class="text-center footer">
+      <div style="width: 100%;">
+        <v-bottom-sheet v-model="sheet">
+          <!-- 具名插槽 -->
+          <template v-slot:activator="{ on }">
+            <v-btn color="accent" large v-on="on" style="width: 100%;">更多统计渠道</v-btn>
+          </template>
+          <v-sheet class="text-center" >
+            <menuButton title="按线路、站点查看" :routerConfig="railwayConfig"></menuButton>
+            <!-- <menuButton title="按区域查看" reqURL="" :routerConfig="areaConfig"></menuButton> -->
+            <menuButton title="按指标查看" :routerConfig="indexConfig"></menuButton>
+            <v-btn large class="space" color="accent">下载报告</v-btn>
+            <v-btn
+              class="mt-5 mb-2"
+              color="error"
+              @click="sheet = !sheet"
+              style="width: 98%;"
+              large
+            >关闭</v-btn>
+          </v-sheet>
+        </v-bottom-sheet>
+      </div>
+    </footer>
+  </div>
+</template>
+
+<script>
+import menuButton from "../components/menuButton.vue";
+import Table from "../components/Table.vue";
+import Charts from "../components/charts.vue";
+import SimpleTable from "../components/simpleTable.vue";
+import IndexTable from "../components/indexTable.vue";
+import Axios from "../API/api.js";
+export default {
+  data() {
+    return {
+      data: {},
+      sheet: false,
+      year: this.defaultYear() + "年",
+      month: this.defaultMonth() + "月",
+      years: [],
+      months: [
+        "1月",
+        "2月",
+        "3月",
+        "4月",
+        "5月",
+        "6月",
+        "7月",
+        "8月",
+        "9月",
+        "10月",
+        "11月",
+        "12月"
+      ],
+      railwayConfig: {
+        name: "railwayPage",
+        params: {}
+      },
+      areaConfig: {
+        name: "areaPage",
+        params: {}
+      },
+      indexConfig: {
+        name: "indexPage",
+        params: {}
+      }
+    };
+  },
+  components: {
+    menuButton,
+    Table,
+    Charts,
+    SimpleTable,
+    IndexTable
+  },
+  beforeRouteEnter(to, from, next) {
+    to.meta.keepAlive = true;
+    next();
+  },
+  created() {
+    //将时间存入store中
+    var time = {
+      year: this.defaultYear() + "",
+      month: this.defaultMonth() + ""
+    };
+    this.$store.state.searchByTime = time;
+    //请求数据
+    this.getData(this.defaultYear(), this.defaultMonth());
+    // console.log("缓存");
+    // console.log(this.$route.meta.keepAlive);
+  },
+  mounted() {
+    var years = [];
+    var currentYear = this.defaultYear();
+    //取当前年的后三年
+    for (var i = 1; i < 4; i++) {
+      var element = currentYear + i;
+      years.unshift(element + "年");
+    }
+    // 取当前年及下限
+    while (currentYear >= 2019) {
+      years.push(currentYear + "年");
+      currentYear--;
+    }
+    this.years = years;
+
+    //获取线路、指标、区域，并存入localstorage
+    this.getLineData("/base/linestations");
+    this.getListData("/member/investigation/getIndicator");
+  },
+  watch: {
+    year(val) {
+      //将时间存入store中
+      var time = {
+        year: parseInt(val) + "",
+        month: parseInt(this.month) + ""
+      };
+      this.$store.state.searchByTime = time;
+      this.getData(parseInt(val), parseInt(this.month));
+      // console.log(parseInt(val));
+    },
+    month(val) {
+      //将时间存入store中
+      var time = {
+        year: parseInt(this.year) + "",
+        month: parseInt(val) + ""
+      };
+      this.$store.state.searchByTime = time;
+      this.getData(parseInt(this.year), parseInt(val));
+      // console.log(parseInt(val));
+    }
+  },
+  methods: {
+    defaultYear: function() {
+      var date = new Date();
+      return date.getFullYear();
+    },
+    defaultMonth: function() {
+      var date = new Date();
+      var month = date.getMonth() + 1;
+      return month;
+    },
+    getData: function(year, month) {
+      var url = "/member/investigation/getStatistic";
+      var that = this;
+      var params = {
+        dimension: 0,
+        year: year + "",
+        month: month + "",
+        lineId: "",
+        stationId: ""
+      };
+      var reqParams = {
+        data: JSON.stringify(params),
+        access_token: this.token
+      };
+      // console.log("请求参数：");
+      // console.log(reqParams);
+      Axios.post(url, reqParams)
+        .then(function(response) {
+          that.data = JSON.parse(response.data.data);
+          // console.log("首页数据:");
+          // console.log(that.data);
+        })
+        .catch(function(error) {
+          // console.log(error);
+        });
+    },
+    getLineData: function(reqURL) {
+      //发送请求，获取items
+      var jsonStr = {
+        appid: "2018112000000201",
+        sign:
+          "Z4INEocFqjnkr3YBlduY8Zio0OV8nrPD0IQa5zjn9Row6BmStcujglt02KkLihwcFHR9Ybna5lXJyhHwWInEGmM80PQlEf+rCjJPKQ9iKEvlrYBUct6hZKS29iBsUeGav4gSprMC7tgEdF7k6POhXLHB/h6Xki4U3nao9oQ8ZlM=",
+        signtype: "RSA",
+        partnerid: "000002",
+        version: "1.0",
+        timestamp: "2019-09-25 14:15:29"
+      };
+
+      var reqParams = JSON.stringify(jsonStr);
+    
+      // console.log("请求参数：");
+      // console.log(reqParams);
+      Axios.post(reqURL, reqParams)
+        .then(function(response) {
+          //存入线路
+          var lineData = JSON.parse(response.data.data).data;
+          // console.log("sessionStorage");
+          // console.log(lineData);
+          sessionStorage.setItem("lineData", JSON.stringify(lineData));
+        })
+        .catch(function(error) {
+          // console.log("错误：");
+          // console.log(error);
+        });
+    },
+    getListData(reqURL) {
+      //发送请求，获取items
+        var jsonStr = {
+        appid: "2018112000000201",
+        sign:
+          "Z4INEocFqjnkr3YBlduY8Zio0OV8nrPD0IQa5zjn9Row6BmStcujglt02KkLihwcFHR9Ybna5lXJyhHwWInEGmM80PQlEf+rCjJPKQ9iKEvlrYBUct6hZKS29iBsUeGav4gSprMC7tgEdF7k6POhXLHB/h6Xki4U3nao9oQ8ZlM=",
+        signtype: "RSA",
+        partnerid: "000002",
+        version: "1.0",
+        timestamp: "2019-09-25 14:15:29"
+      };
+
+      var reqParams = JSON.stringify(jsonStr);
+      // console.log("请求参数：");
+      // console.log(reqParams);
+      Axios.post(reqURL, reqParams)
+        .then(function(response) {
+          //存入指标
+          var targetData = JSON.parse(response.data.data).searchConditionList;
+          // console.log("sessionStorage");
+          // console.log(targetData);
+          sessionStorage.setItem("targetData", JSON.stringify(targetData));
+        })
+        .catch(function(error) {
+          // console.log(error);
+        });
+    }
+  }
+};
+</script>
+
